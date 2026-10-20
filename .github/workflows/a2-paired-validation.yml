@@ -1,0 +1,25 @@
+name: A2 paired Linux differential validation
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  paired:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.14'
+      - name: Checkout fixed upstream baseline
+        run: |
+          git clone --no-checkout https://github.com/python-attrs/attrs.git /tmp/attrs-a2-upstream-baseline
+          git -C /tmp/attrs-a2-upstream-baseline checkout ee66e7274852438cc23d4240a1a9cd632fda8b52
+      - name: Differential correctness
+        run: A2_BASELINE_SRC=/tmp/attrs-a2-upstream-baseline/src uv run pytest tests/test_a2_differential_research.py -q
+      - name: Paired randomized-control performance
+        run: uv run python bench/paired_astuple_a2.py --baseline /tmp/attrs-a2-upstream-baseline/src --candidate ./src --rounds 5
+      - name: Complete unit tests
+        run: uv run pytest -q
