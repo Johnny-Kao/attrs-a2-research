@@ -1,0 +1,32 @@
+name: A2 research validation
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13', '3.14']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Test source and regression suite
+        run: uv run --python ${{ matrix.python-version }} pytest -q
+      - name: Validate source formatting
+        run: uv run --python ${{ matrix.python-version }} ruff check src/attr/_funcs.py bench/bench_astuple_dict_atomic_research.py
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+      - name: Benchmark A2 candidate
+        run: uv run python bench/bench_astuple_dict_atomic_research.py
