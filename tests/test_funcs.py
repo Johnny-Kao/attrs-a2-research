@@ -416,6 +416,7 @@ class TestAsTuple:
         Atomic dict entries retain their values and subclasses, while attrs
         instances are recursively converted.
         """
+
         class IntSub(int):
             pass
 
